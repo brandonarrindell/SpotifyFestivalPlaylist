@@ -1,14 +1,21 @@
+"""
+Festival Playlist Creator
+
+This module creates Spotify playlists based on festival poster images using OpenAI's vision model.
+"""
+
 import os
 import json
+import io
+import base64
+from datetime import datetime, timedelta
 from typing import List, Dict, Tuple
+
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 from openai import OpenAI
 from PIL import Image
-import io
-import base64
 from dotenv import load_dotenv
-from datetime import datetime, timedelta
 from tqdm import tqdm
 
 # Load environment variables from .env file
@@ -79,7 +86,7 @@ def fetch_liked_songs(sp: spotipy.Spotify) -> List[Dict]:
 def load_liked_songs() -> Dict:
     """Load liked songs from a JSON file."""
     if os.path.exists(LIKED_SONGS_FILE):
-        with open(LIKED_SONGS_FILE, "r") as f:
+        with open(LIKED_SONGS_FILE, "r", encoding="utf-8") as f:
             return json.load(f)
     return {"timestamp": None, "songs": []}
 
@@ -90,7 +97,7 @@ def save_liked_songs(liked_songs: List[Dict]) -> None:
         "timestamp": datetime.now().isoformat(),
         "songs": liked_songs
     }
-    with open(LIKED_SONGS_FILE, "w") as f:
+    with open(LIKED_SONGS_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f)
 
 
@@ -239,14 +246,15 @@ def create_full_festival_playlist(sp: spotipy.Spotify, artists: List[str], playl
 
 
 def main():
+    """Main function to run the Festival Playlist Creator."""
     setup_environment()
 
     poster_path = input("Enter the path to the festival poster image: ")
 
     try:
         sp = get_spotify_client()
-    except Exception as e:
-        print(f"Error authenticating: {e}")
+    except spotipy.SpotifyException as e:
+        print(f"Error authenticating with Spotify: {e}")
         return
 
     potential_artists = parse_festival_poster(poster_path)
@@ -262,19 +270,19 @@ def main():
     display_artists([(artist, confidence) for artist, confidence in potential_artists if artist in filtered_artists])
 
     mode = input(
-        "Choose a mode:\n1. Create playlist based on liked songs\n2. Create playlist with all festival artists\nEnter 1 or 2: ")
+        "Choose a mode:\n1. Create playlist based on liked songs\n"
+        "2. Create playlist with all festival artists\nEnter 1 or 2: "
+    )
 
     if mode == "1":
         liked_songs = get_cached_or_fetch_liked_songs(sp)
         liked_artists = get_liked_artists([artist for artist, _ in filtered_artists], liked_songs)
-        print(
-            f"\nFound {len(liked_artists)} artists from the poster in your liked songs.")
+        print(f"\nFound {len(liked_artists)} artists from the poster in your liked songs.")
         display_artists([(artist, confidence) for artist, confidence in potential_artists if artist in liked_artists])
         track_uris = get_top_tracks(sp, liked_artists)
         playlist_name = input("Please enter a name for your playlist: ")
         create_festival_playlist(sp, playlist_name, track_uris)
-        print(
-            f"Successfully created playlist '{playlist_name}' with top songs from your liked artists.")
+        print(f"Successfully created playlist '{playlist_name}' with top songs from your liked artists.")
     elif mode == "2":
         playlist_name = input("Please enter a name for your playlist: ")
         create_full_festival_playlist(sp, [artist for artist, _ in filtered_artists], playlist_name)
