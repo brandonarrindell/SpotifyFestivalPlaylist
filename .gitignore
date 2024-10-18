@@ -1,0 +1,52 @@
+# Python-related
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environment
+venv/
+env/
+ENV/
+
+# IDEs and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS-related
+.DS_Store
+Thumbs.db
+
+# Project-specific
+.env
+liked_songs.json
+.cache*
+*.log
+
+# Spotify cache files
+.cache-*
+
+# Image files (in case you have test images in the directory)
+*.jpg
+*.jpeg
+*.png
+*.gif
